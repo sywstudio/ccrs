@@ -1,0 +1,1964 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" style="font-size: 23.4375px;">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- Mobile Devices Support @begin -->
+<meta name="referrer" content="always">
+<meta content="application/xhtml+xml;charset=UTF-8" http-equiv="Content-Type">
+<meta content="no-cache,must-revalidate" http-equiv="Cache-Control">
+<meta content="no-cache" http-equiv="pragma">
+<meta content="0" http-equiv="expires">
+<meta name="referrer" content="always">
+<meta content="telephone=no, address=no" name="format-detection">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0">
+<meta name="apple-mobile-web-app-capable" content="yes"> <!-- apple devices fullscreen -->
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>E路同行，闯关有礼</title>
+<link href="./css/base.min.css" rel="stylesheet" type="text/css">
+<link href="./css/bpb.min.css" rel="stylesheet" type="text/css">
+<link href="./css/css.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="js/jquery.min.js"></script>		
+<script type="text/javascript">
+ 
+      var openid = getQueryString('openid');
+	  var wxhead = getQueryString('wxhead');
+						var appId_share =''
+						var nonceStr_share =''
+						var timestamp_share =''
+						var url_share =''
+						var signature_share =''
+						var rawString_share =''
+	//	var openid = "o4kazwol8xjfSLeCz2ja8OSuUAVI";
+	/*if(openid !==null){
+		alert(openid);
+	}else{
+		alert('not openid');
+	}*/
+	 
+	 //获取 url参数 jack
+	 function getQueryString(name) { 
+			var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i"); 
+			var r = window.location.search.substr(1).match(reg); 
+			if (r != null) return unescape(r[2]); return null; 
+	 } 
+ 
+	//开游戏的重要第一环节
+	var game_id = 0;
+	/*开始游戏接口 接口 jack*/
+	function startgamejack(){
+	 	 var xhrurl = 'http://elu.1024cmi.com/Home/Index/startGame';
+			if(openid !==null){
+				 $.post(xhrurl,{openId:openid},function(data){
+						 if(data.code ==10000){
+							game_id = data.data; //传入游戏ID值
+							console.log("开始游戏成功！");
+							 $("#wx_head_img").attr("src",wxhead);
+							return true;
+						}else{
+							//alert(data.msg);
+							alert_html5(data.msg);
+							return false;
+						}
+					});
+			 
+			}else{
+				alert_html5('没有openid');
+				return  false;
+			}
+		 
+	}
+	/*我获得的奖品 接口 jack*/
+	function MyPrizeButton(){
+	    // alert(1);
+			if(openid !==null){
+			xhrurl = 'http://elu.1024cmi.com/Home/Index/getMyPrize';
+				 $.get(xhrurl, { openId:openid},function(data){
+					   if(data.code ==10000){
+							if(data.data ==''){
+								 console.log("奖品是空的！");
+								 alert_html5('亲，您还未赢得抽奖机会');
+							}else{
+								 $(".myJiangpinPageJp-content").html(data.data.prize_name);
+								 console.log("查询我的礼物成功!");
+								 document.getElementById("myJiangpinPage").style.display = "block";
+							}
+							 
+						}else{
+							//alert(data.msg);
+							alert_html5(data.msg);
+						}
+				  });
+				  
+			}else{
+				console.log("没有openid");
+				return  false;
+			}
+	}
+	/*抽奖接口 jack -> 触发点只有在 涂层被打开才进行*/
+	 function startDraw(){
+				/*
+					openid=》 微信的openid
+					_gameScore => 当前分数
+					nowguanshuend => 当前关数
+					game_id => 当前开始游戏的ID
+				*/
+				
+				/*初始化按钮 -> 放在这里触发抽奖次数*/
+				  document.getElementById("requiredchoujiang").innerHTML="剩余抽奖次数:"+(nowguanshuend-kongzhicishu);
+				  kongzhicishu++; //触发+1
+				 /*初始化按钮 -> 放在这里触发抽奖次数*/	
+				 
+				if(nowguanshuend==0){
+				  
+					  document.getElementById("prompt").innerHTML="很遗憾，闯关失败请再次尝试";
+					 $(".result-content").html('对不起，您未赢得抽奖机会');
+					 
+					  $("#prompt").css("line-height","75px")
+					 document.getElementById("choujiangshangxian").style.display = "block";
+					  document.getElementById("requiredchoujiang").style.display = "none";
+					  
+					  
+				 }else{
+				  //这里是触发 抽奖中奖的内容 jack
+				  /*抽奖接口 start */
+					 if(openid !==null){
+						 if(game_id !==0){
+							xhrurl = 'http://elu.1024cmi.com/Home/Index/extractPrize';
+							 $.post(xhrurl,{openId:openid,id:game_id},function(data){
+									 if(data.code ==10000){
+									 
+										console.log("已中奖！奖品是:"+data.data.prize_name);
+										document.getElementById("prompt").innerHTML= data.data.prize_name;
+										document.getElementById("requiredchoujiang").style.display = "block";
+									}else if(data.code ==50407){
+										  $("#prompt").css("line-height","75px");
+										  document.getElementById("choujiangshangxian").style.display = "block";
+										  document.getElementById("requiredchoujiang").style.display = "none";
+										 document.getElementById("prompt").innerHTML='亲，您已领取过奖品了';
+										//alert_html5(data.msg)
+									}else if(data.code ==50404){
+										 document.getElementById("prompt").innerHTML='很遗憾，红包与您擦肩而过';
+										 document.getElementById("requiredchoujiang").style.display = "block";
+										  $("#prompt").css("line-height","40px");
+										  document.getElementById("choujiangshangxian").style.display = "none";
+										  
+									}else{
+										document.getElementById("prompt").innerHTML=data.msg;
+									}
+								});
+						 }else{
+							alert_html5("游戏ID不存在");
+							return false;
+						 }
+					}else{
+						alert_html5("没有openid");
+						return  false;
+					}
+					/*抽奖接口 end */
+				 }
+				 
+				 
+			 
+	 }
+</script>
+<script type="text/javascript">
+//屏幕宽度设置
+    var g_rem = 20;
+    (function(docElem,win){
+        var setFontSize = function(){
+            g_rem = (docElem.getBoundingClientRect().width || docElem.clientWidth || win.innerWidth)/16;
+            !g_rem && (g_rem = 20);
+            docElem.style.fontSize = g_rem + 'px';
+        }
+        win.addEventListener("resize",setFontSize,false);
+        setFontSize();
+    })(document.documentElement || document.getElementsByTagName('html')[0],window);
+
+
+   
+   function preloadimages(arr){
+            var newimages=[], loadedimages=0;
+            var postaction=function(){}  //此处增加了一个 postaction 函数
+            var arr=(typeof arr!="object")? [arr] : arr;
+            function imageloadpost(){
+                loadedimages++;
+				  	 $(".orangejack").css("width",loadedimages+'%');   
+					 $(".jack_loading_gif").css("padding-left",loadedimages+'%');   
+					 
+                if (loadedimages==arr.length){
+                    postaction(newimages); //加载完成用我们调用 postaction 函数并将 newimages 数组做为参数传递进去
+					  $(".orangejack").css("width",'100%');   
+					  $(".jack_loading_gif").css("padding-left",'100%');   
+                }
+            }
+            for (var i=0; i<arr.length; i++){
+                newimages[i]=new Image();
+                newimages[i].src=arr[i];
+                newimages[i].onload=function(){
+                    imageloadpost();
+					 
+                }
+                newimages[i].onerror=function(){
+                    imageloadpost();
+                }
+            }
+            return { //此处返回一个空白对象的done方法
+                done:function(f){
+                    postaction=f || postaction;
+                }
+            }
+        }
+        preloadimages(['img/0.jpg','img/back.png','img/bg1.png','img/bg2.png','img/bg3.png','img/bgForm.png','img/bgmusic03M.mp3','img/bgY.jpg','img/black.png','img/black.tmp','img/bonus.mp3','img/but1.png','img/but2.png','img/but3.png','img/but4.png','img/button.mp3','img/cg1.png','img/cg1a.png','img/cg2.png','img/cg2a.png','img/close.png','img/cowboy1.png','img/cowboy2.png','img/cowboy3.png','img/cowboy4.png','img/cowboy5.png','img/cowboy6.png','img/cowboy7.png','img/dzpgz.png','img/err.mp3','img/fx.jpg','img/gt.png','img/guang.png','img/gz.png','img/htree.png','img/k1.png','img/k2.png','img/k3.png','img/k4.png','img/mask.png','img/musicOff.png','img/musicOn.png','img/p1.png','img/p1a.png','img/p2.png','img/p3.png','img/ph1.png','img/ph2.png','img/pic.jpg','img/play.png','img/pover.png','img/ren.png','img/road.jpg','img/road.png','img/run.png','img/s1.png','img/s2.png','img/s3.png','img/s4.png','img/s4a.png','img/sjxz.png','img/stree.png','img/tg.png','img/time.png','img/timeUp.png','img/tishi1.png','img/tishi2.png','img/title.png','img/tj.png','img/viewRank.png','img/words.png','img/xrz.png','img/xrzleft.png','img/yxgz.png','img/zl1.png','img/zl2.png','img/zlBut1.png','img/zlBut2.png']).done(function(images){
+			 
+			$("#status").fadeOut(); // will first fade out the loading 
+			$("#preloader").delay(400).fadeOut("slow"); // will fade out the white DIV that covers the website.else{
+			$(".progressjack").fadeOut("slow");  
+			
+			$("#pageY").show(); 
+			$("#audioMusic").trigger('play');
+			
+			 jack_fn();
+		
+        });
+
+        function fun(){
+            alert("你没有机会了,邀请好友为你助力吧!");
+            $("#share").css('display','block');
+            //window.location.href = "http://gdpress.cn/index.php";
+        }
+		document.addEventListener('WeixinJSBridgeReady', function() {
+			var musicobj = document.getElementById('audioMusic');
+			musicobj.play();
+		}, false);
+		
+		
+		function jack_fn(){
+		    
+			$("#tg").parent().hide();
+			$("#body").show();
+			
+		 }
+</script>
+
+</head>
+<body class="gameTpl_-1" >
+ 
+<div class="main">
+<!-- loading页面 -->
+    <div id="preloadPage" class="bg leftClose" style="display: none;">
+         
+        <div class="info"><span id="loadPercent">100</span>%</div>
+ 
+        <div id="userPreload" data-src="./img/Fje0QfM0ezMdcz4kN4Yl42YmZDNlZ2N.png"></div>
+    </div>
+
+  <div id="preloader" >
+	<div id="status">
+		<p class="center-text">加载中...</p>
+    </div>
+	 
+	<div class="progressjack">
+		<div class="jack_loading_div_gif">
+			<img src="img/loading.gif"  class="jack_loading_gif myAnimation_jack"> 
+		</div>
+      <span class="orangejack myAnimation_jack" style="width: 0%;"></span>
+    </div>
+ </div>
+ 
+<div class="cd-popup" role="alert">
+	<div class="cd-popup-container">
+		<p id="cd_popup_container_title">???</p>
+		<ul class="cd-buttons">
+			<li><a class="close_popup_jack">关闭</a></li>
+		</ul>
+		<a href="#" class="cd-popup-close img-replace">  </a>
+	</div> <!-- cd-popup-container -->
+</div>
+<script>
+//open popup
+ function alert_html5(title){
+		event.preventDefault();
+		$('#cd_popup_container_title').text(title);
+		$('.cd-popup').addClass('is-visible');
+ }
+ 
+	 $(".close_popup_jack").click(function(){
+		event.preventDefault();
+		$(".cd-popup").removeClass('is-visible');
+	 })
+ $(".cd-popup-close").click(function(){
+		event.preventDefault();
+		$(".cd-popup").removeClass('is-visible');
+	 })
+ 
+</script>
+	<div class="ajaxLoadBg">
+		<div class="ajaxLoadBar "></div>
+	</div>
+	<div class="body" id="body" style="display:none;">		
+		<div class="home" >
+			<div id="homeBgBox" style="width:100%;height:auto;">
+            	<div class="bgColor"></div>
+			<!-- 	<img src="./img/p1a.png"/>	
+				<img src="./img/bg1.png" />			 -->
+				<img src="./img/bg_index.png" />
+			</div>	
+			
+			 
+			 
+			<div class="gameInfoBox">
+				<div class="titleImg imgContainer absCenter">
+					<img id="titleImg" class="slaveImg abs titleA" src="./img/title.png" style="width: 70vw;height: auto;top: 8vw;left: 15vw;">
+				</div>
+			</div>	
+   			<!-- <div class="run1"><div class="run_s"></div></div> -->
+			<!-- <img src="./img/guang.png" class="guang"/>	 -->
+           <!--  <img src="img/viewRank.png" class="viewRank" id="viewRank" /> -->
+
+			<div id="startBtn" class="startBtn imgContainer absCenter" style="top:-3rem;">
+				<img id="startBtnImg" class="slaveImg abs  play startTada  " src="img/play.png"   >
+			</div>	
+	 
+			<div  class="startBtn imgContainer absCenter" style="top:-0rem;">
+                	<a href="#"> <img src="img/viewRank.png" class="slaveImg abs  play viewRank  "  ></a>
+			</div>	
+			
+			
+		</div>
+		<div class="gameBox hide gameBgBox overflow-y-hidden" style="height: 26.752rem;">
+			<div id="gameBgBox">
+				<img id="gameBg" src="./img/road.jpg" style="width:100%;height:auto;">	
+                <div class="road"><div class="road_s" id="road_s" ></div></div>
+                <div class="userInfoBox"></div>
+				<div class="wx_head"><img src="http://wx.qlogo.cn/mmopen/xzvVYaqtSnysrB72EFrbBlNYjuCwR4UY5FyowMzWL5aic22wcYbT5MRUKHecvm8blkRDB4aL5SufoWoRHBfFcib9Z6ibAw1jQrR/0" id="wx_head_img"/></div>
+                <!--<div class="life"><img src="./img/heart.png" /> +2</div>-->
+				<div class="jf" style="display:none;"> <img src="img/pover.png" class="jfPover"/><div>0</div></div>
+            	<div class="js" style="display:none;"><img src="img/time.png" class="jsTime"/><div>60s</div></div>
+				
+					<div  class="loupainname_jack" >
+                	 <img src="img/loupai1.png"   id="loupainame_jack"> 
+					</div>	
+					<!--  <div  class="loupainname_jack_div_tishi" >
+                	 <img src="img/loupai1.png"   class="loupainname_jack_div_tishi_img"> 
+					</div>	 -->
+			</div>
+            
+ 
+			<div id="gameLayerBox">
+                <canvas id="canvas" width="750" height="1254" style="width: 375px; height: 627px;">你的浏览器不支持canvas，请换个浏览器，谢谢</canvas>
+			</div>
+            <div id="tishi1" class="tishi"></div>
+            <div id="tishi2" class="tishi"></div>
+            <div class="timeUpImg hide" style="display: none;"></div>
+		<div class="soundIcon soundIconPlay soundIconOff"></div></div>
+		
+<div id="spxdPage"></div>
+<div id="pageMusic" style="position:absolute;top:0;height:0;"><audio preload="auto" src="./img/bgmusic03M.mp3"></audio></div>
+<!-- 活动规则，排行榜，我的奖品的弹出层 -->
+<div class="ruleImg imgContainer absCenter" _mousein="0" onClick="showRule();" style="    top: -5px;">
+    <img id="ruleImg" class="gz" src="./img/gz.png">
+</div>
+<div id="poupInfoBox"> 
+	<div class="poupImg">
+	<div class="gameguize">
+	  活动时间：2017.7.1-7.31<br>
+活动规则：<br>
+	•	手指滑动手机屏幕操控吉祥燕，收集流量金币，并躲避障碍物，途中触碰到障碍物或通关则游戏结束；<br>
+2．游戏共分为3个关卡，每个关卡3个景点，每过一关获得一次抽奖机会，游戏结束后刮开奖券抽奖；<br>
+3. 每一个玩家取最高积分排名，活动结束后，根据积分排名榜，排在前50名的玩家将获得神秘礼品一份。<br>
+本活动最终解释权归长城人寿保险股份有限公司所有。<br>
+活动奖品：<br>
+	•	12小时电话医生服务<br>
+	•	国际SOS道路救援服务<br>
+	•	国际SOS全球医疗救援服务<br>
+	•	长城人寿综合意外赠险<br>
+中奖人员请回复“我要领奖”到长城人寿官微，经身份验证通过后将在申请之日起的15个工作日内短信通知，领奖截止日为8月31日。<br>
+
+	  </div>
+	
+	</div>
+	<div class="poupClose"></div>
+</div>
+
+</div>
+<div class="R_game" style="display:none;">    
+    <div class="Result" style="display:none;">
+        <div id="success" style="display:none;">
+            <!-- <img src="img/cg1.png" class="cg1"/> -->
+            <!-- <img src="img/cg1a.png" class="cg1a"/> -->
+            <!-- <img src="img/but1.png" id="but1" onClick="Show_Hidden(SubForm);"/> -->
+            <a  class="jackrestart"><img src="img/but2.png" id="but2"/></a>
+            <img src="img/but3.png" id="but3" onClick="Show_Hidden(share);"/>
+            <img src="img/viewRank.png" class="viewRank" id="viewRank" />
+			<!--我要抽奖-》刮刮乐 start-->
+			
+			<div class="choujiang_jack"  >
+				 
+						<img src="img/choujiangbtn.png" class="choujiang_jack_btn" id="choujiang_fn_jack"  >
+				 
+			</div> 
+			 
+			<!--我要抽奖->刮刮乐 end-->
+			<!--刮刮乐 start-->
+			 
+			<div class="ggl" id="top" style="display:none">
+				<div class="info" id="prize">
+					<span id="prompt">加载中...</span>
+					<span   id="choujiangshangxian"> </span>
+					<span class="btn" id="requiredchoujiang"> </span>
+				</div>
+				<canvas id="c1" class="canvas"></canvas>
+			</div>  
+		<script>
+		
+		$(".jackrestart").click(function(){
+			window.location.href='http://elu.1024cmi.com/Home/Index/toIndex?openId='+openid;
+		})
+			$("#choujiang_fn_jack").click(function() {
+					/*初始化画布的和 载入当前闯关次数 ，剩余多少关 等 等... */
+					 // alert(1);
+					 if(nowguanshuend==0){
+						
+						 alert_html5("亲，您未赢得抽奖机会！");
+						 
+					 }else{
+								console.log("触发抽奖按钮!");
+								$(".ggl").css("display","block");
+
+								if(kongzhicishu>nowguanshuend){
+								//应该弹出遮罩层提示您的次数已经用完了
+								 document.getElementById("prompt").innerHTML="抽奖次数上限了";
+								 
+								  $("#prompt").css("line-height","75px")
+								 document.getElementById("choujiangshangxian").style.display = "block";
+								  document.getElementById("requiredchoujiang").style.display = "none";
+								 // console.log('cx0002当前可以抽奖次数'+nowguanshu);
+								 // console.log('cx0002当前已经抽奖次数'+kongzhicishu); 
+								 // console.log('cx0005当前可以抽奖次数'+nowguanshuend);  
+								  console.log('抽奖次数上限了');
+								}else{
+								 
+									//初始化按钮
+									 document.getElementById("requiredchoujiang").style.display = "none"; //不显示
+									gameoveronload();//初始化 画布 盖上 包括 抽奖状态 和领取的奖品
+									console.log('cx0001当前已经抽奖次数'+kongzhicishu);
+									 console.log('cx0006当前可以抽奖次数'+nowguanshuend);
+								}
+					 }
+					  
+			})
+			
+			
+			//控制刮卡次数
+			var kongzhicishu = 1; 
+			 
+			//初始化 产生奖品
+			var initialize  = function () {
+				//剩余刮卡次数
+				//$('.num1').html(4-t);
+				//随机数
+				//function getRandomNum(lbound, ubound) {
+				//	return (Math.floor(Math.random() * (ubound - lbound)) + lbound);
+				//}
+				//var r = getRandomNum(1,100);
+				 var btn = document.getElementsByClassName("btn");
+				 for(var i=0; i<btn.length; i++){
+				 	btn[i].style.zIndex = '1';
+				 }
+				document.getElementById("requiredchoujiang").style.display = "none";
+				document.getElementById("choujiangshangxian").style.display = "none";
+				
+				//初始化涂抹面积
+				isOk = 0;// 0重新判断挂涂层，1等于被刮开图层2/1 ，已经开奖， 0=》重新挂涂层
+				 
+			};
+		
+			var c1;				//画布
+			var ctx;			//画笔
+			var ismousedown;	//标志用户是否按下鼠标或开始触摸
+			var isOk=0;			//标志用户是否已经刮开了一半以上
+			
+			var fontem = parseInt(window.getComputedStyle(document.documentElement, null)["font-size"]);//这是为了不同分辨率上配合@media自动调节刮的宽度
+
+			/* 页面加载后开始初始化画布 */
+			 function gameoveronload(){
+			 initialize();
+				c1 = document.getElementById("c1");
+				
+				//这里很关键，canvas自带两个属性width、height,我理解为画布的分辨率，跟style中的width、height意义不同。
+				//最好设置成跟画布在页面中的实际大小一样
+				//不然canvas中的坐标跟鼠标的坐标无法匹配
+				c1.width=c1.clientWidth;
+				c1.height=c1.clientHeight;
+				ctx = c1.getContext("2d");
+				
+				//PC端的处理
+				c1.addEventListener("mousemove",eventMove,false);
+				c1.addEventListener("mousedown",eventDown,false);
+				c1.addEventListener("mouseup",eventUp,false);
+			
+				//移动端的处理
+				c1.addEventListener('touchstart', eventDown,false);
+		    	c1.addEventListener('touchend', eventUp,false);
+		    	c1.addEventListener('touchmove', eventMove,false);
+				
+				//初始化 灰色画布
+				initCanvas();
+			}
+
+			//初始化画布，画灰色的矩形铺满
+			function initCanvas(){
+				//网上的做法是给canvas设置一张背景图片，我这里的做法是直接在canvas下面另外放了个div。
+				//c1.style.backgroundImage="url(中奖图片.jpg)";
+				
+				ctx.globalCompositeOperation = "source-over";
+				ctx.fillStyle = '#aaaaaa';
+				ctx.fillRect(0,0,c1.clientWidth,c1.clientHeight);
+				ctx.fill();
+				
+				ctx.font = "Bold 30px Arial";
+				ctx.textAlign = "center";
+				ctx.fillStyle = "#999999";
+				ctx.fillText("刮一刮",c1.width/2,50);
+				
+				//把这个属性设为这个就可以做出圆形橡皮擦的效果
+				//有些老的手机自带浏览器不支持destination-out,下面的代码中有修复的方法
+				ctx.globalCompositeOperation = 'destination-out';
+			}
+
+			//鼠标按下 和 触摸开始
+			function eventDown(e){
+				e.preventDefault();
+				ismousedown=true;
+				if(isOk==0){ // 这里等于 0 就触发抽奖接口 
+					console.log("触发涂层！x001 第一次");
+					
+					startDraw();
+				}else{
+					//console.log("触发涂层！x001 第二次");
+				}
+				 
+			}
+			
+			
+			//鼠标抬起 和 触摸结束
+			function eventUp(e){
+				e.preventDefault();
+				
+				//得到canvas的全部数据
+				var a = ctx.getImageData(0,0,c1.width,c1.height);
+				var j=0;
+				for(var i=3;i<a.data.length;i+=4){
+						if(a.data[i]==0)j++;
+				}
+			
+				//当被刮开的区域等于一半时，则可以开始处理结果
+				if(j>=a.data.length/8){
+					isOk = 1;
+					//console.log("触发涂层2分之一！x002");
+				}
+				ismousedown=false;
+			}
+			
+			//鼠标移动 和 触摸移动
+			function eventMove(e){
+				 e.preventDefault();
+				if(ismousedown) {
+					 if(e.changedTouches){
+						 e=e.changedTouches[e.changedTouches.length-1];
+					 }
+				var topY = document.getElementById("top").offsetTop;
+				var oX = c1.offsetLeft,
+			    	oY = c1.offsetTop+topY;
+				
+				var x = (e.clientX + document.body.scrollLeft || e.pageX) - oX || 0,
+					y = (e.clientY + document.body.scrollTop || e.pageY) - oY || 0;
+			
+					//画360度的弧线，就是一个圆，因为设置了ctx.globalCompositeOperation = 'destination-out';
+					//画出来是透明的
+					 ctx.beginPath();
+					 ctx.arc(x, y, fontem*1.2, 0, Math.PI * 2,true);
+					 
+					 //下面3行代码是为了修复部分手机浏览器不支持destination-out
+					 //我也不是很清楚这样做的原理是什么
+				 
+					 
+					 ctx.fill();
+				}
+				
+				if(isOk){
+					var btn = document.getElementsByClassName("btn");
+					for(var i=0; i<btn.length; i++){
+						btn[i].style.zIndex = '3';
+					}
+					document.getElementsByClassName("btn")[0].style.zIndex="3";
+				}
+			}
+			 
+		</script>
+			 
+			<!--刮刮乐 end-->
+        </div>
+        <div id="fail" style="display:none;">
+          <!--   <img src="img/cg2.png" class="cg1"/> -->
+            <!-- <img src="img/cg2a.png" class="cg1a"/> -->
+            <a href="index.html"><img src="img/but2.png" id="but2a"/></a>
+            <img src="img/but3.png" id="but3" onClick="Show_Hidden(share);"/>
+            <img src="img/viewRank.png" class="viewRank" id="viewRank" />
+        </div>
+        <div class="result-box">
+            <div class="result_text">000</div>
+            <div class="result-content">加载中</div>
+        </div>
+        
+         
+        
+    </div>
+</div>
+<!--排行榜-->
+<div class="rankList" id="rankList" style="display:none;">	
+    <div class="rankOne" id="rankOne">
+        <ul class="bd" id="bd0" >
+            <!-- <li><div class="Mc">01</div><img src="./img/0.jpg" class="headJpg"><div class="nickName">我是昵称昵称昵称</div><div class="fenS">8888</div></li>
+            <li><div class="Mc">02</div><img src="./img/0.jpg" class="headJpg"><div class="nickName">我是昵称昵称昵称</div><div class="fenS">8888</div></li>
+            <li><div class="Mc">03</div><img src="./img/0.jpg" class="headJpg"><div class="nickName">我是昵称昵称昵称</div><div class="fenS">8888</div></li>
+            <li><div class="Mc">04</div><img src="./img/0.jpg" class="headJpg"><div class="nickName">我是昵称昵称昵称</div><div class="fenS">8888</div></li>
+            <li><div class="Mc">05</div><img src="./img/0.jpg" class="headJpg"><div class="nickName">我是昵称昵称昵称</div><div class="fenS">8888</div></li>
+            <li><div class="Mc">06</div><img src="./img/0.jpg" class="headJpg"><div class="nickName">我是昵称昵称昵称</div><div class="fenS">8888</div></li>
+            <li><div class="Mc">07</div><img src="./img/0.jpg" class="headJpg"><div class="nickName">我是昵称昵称昵称</div><div class="fenS">8888</div></li>
+            <li><div class="Mc">08</div><img src="./img/0.jpg" class="headJpg"><div class="nickName">我是昵称昵称昵称</div><div class="fenS">8888</div></li>
+            <li><div class="Mc">09</div><img src="./img/0.jpg" class="headJpg"><div class="nickName">我是昵称昵称昵称</div><div class="fenS">8888</div></li>
+            <li><div class="Mc">10</div><img src="./img/0.jpg" class="headJpg"><div class="nickName">我是昵称昵称昵称</div><div class="fenS">8888</div></li>
+            <li><div class="Mc">11</div><img src="./img/0.jpg" class="headJpg"><div class="nickName">我是昵称昵称昵称</div><div class="fenS">8888</div></li> -->
+        </ul>
+    </div>	
+    <div class="rankTwo" id="rankTwo" style="display:none;">
+        <ul class="bd" id="bd1" >
+            <!-- <li><img src="./img/0.jpg" class="headJpg1"><div class="nickName1">我是昵称昵称昵称</div></li>
+            <li><img src="./img/0.jpg" class="headJpg1"><div class="nickName1">我是昵称昵称昵称</div></li>
+            <li><img src="./img/0.jpg" class="headJpg1"><div class="nickName1">我是昵称昵称昵称</div></li>
+            <li><img src="./img/0.jpg" class="headJpg1"><div class="nickName1">我是昵称昵称昵称</div></li>
+            <li><img src="./img/0.jpg" class="headJpg1"><div class="nickName1">我是昵称昵称昵称</div></li>
+            <li><img src="./img/0.jpg" class="headJpg1"><div class="nickName1">我是昵称昵称昵称</div></li>
+            <li><img src="./img/0.jpg" class="headJpg1"><div class="nickName1">我是昵称昵称昵称</div></li>
+            <li><img src="./img/0.jpg" class="headJpg1"><div class="nickName1">我是昵称昵称昵称</div></li>
+            <li><img src="./img/0.jpg" class="headJpg1"><div class="nickName1">我是昵称昵称昵称</div></li>
+            <li><img src="./img/0.jpg" class="headJpg1"><div class="nickName1">我是昵称昵称昵称</div></li>
+            <li><img src="./img/0.jpg" class="headJpg1"><div class="nickName1">我是昵称昵称昵称</div></li> -->
+        </ul>
+    </div>	
+    <!-- <div class="butPh" id="zl"></div> -->
+    <div class="butPh" id="ph" style="display:none;"></div>
+	 <div class="myjiangpin" onclick="MyPrizeButton()"></div>
+    <div class="back"></div>
+	 
+</div>
+
+
+<!--我的奖品 start-->
+ 
+<div class="myJiangpinPage" id="myJiangpinPage" style="display:none;">	
+    <div class="myJiangpinPageJp" id="myJiangpinPageJp">
+		 <div class="myJiangpinPageJp_text">我的奖品</div>
+         <div class="myJiangpinPageJp-content"> 
+			 加载中...
+		</div>
+    </div>	
+    <div class="back"></div>
+</div>
+<!--我的奖品 end-->
+
+
+<!--分享-->
+<div class="share" id="share" style="display:none;" onClick="Show_Hidden(share);">
+<img src="img/s1.png" style="display: none;"/>
+<img src="img/s2.png" style="display: none;"/>
+<img src="img/s3.png"  style="display: none;"/>
+<img src="img/s4.png" style="display: none;"/>
+<img src="img/s4a.png" />
+
+</div>
+
+<div class="pageY" id="pageY" style="display:none;">
+	<div class="K1"><img src="./img/pic.jpg" /></div>
+	<div class="K1a"></div>
+	<div class="K2"><img src="./img/words.png" /></div>
+    <div class="mask">
+        <div class="K3"><img  src="img/pic.jpg"></div>
+    </div>
+    <img src="img/p1.png" class="TP1"/>
+    <img src="img/p2.png" class="TP2"/>
+    <img src="img/p3.png" class="TP3"/>
+    <img src="img/p1.png" class="TP4"/>
+    <img src="img/p1.png" class="TP5"/>
+	<div class="K3a"></div>
+    <img src="img/k4.png" class="K4"/>
+    <div class="run"><div class="run_s"></div></div>-->
+    <img src="img/but4.png" class="but4" id="butNext"/>
+    <img src="img/tg.png" class="tg" id="tg"/>
+</div>
+<div style="display:none;"><audio src="img/music.mp3" id="audioMusic" preload="autoplay" controls loop></audio></div>
+</div>
+
+ 
+ 
+
+ 
+
+<script type="text/javascript">
+    function loadGamePreAssets(){
+        hg.assets.add(["./img/tishi1.png","./img/tishi2.png"]);
+    }
+</script>
+
+<script type="text/javascript">
+ var _manage = false,
+        m_debug = false, 
+        _resRoot = 'http://gdpress.cn',
+        hg = {};
+    (function(hg){
+        var imgPaths=[],readyCallBack=[],loadCallBack=[];hg.assets={complete:false,loadComplete:false,increment:50,loadingStyle:1,loadTimeout:120000,add:function(src){var self=this;if(self.complete||_manage){return}if(isArray(src)){for(var i=src.length-1;i>=0;i--){self.add(src[i])}}else if(typeof src==='string'){imgPaths.push(src)}return this},onReady:function(callBack){var self=this;if(self.complete){callBack()}else{readyCallBack.push(callBack)}return self},onload:function(callBack){var self=this;if(self.loadComplete){callBack()}else{loadCallBack.push(callBack)}return self},loadPage:function(){if(_manage)return;var self=this,percent=1,numLoaded=0,$loadPercent=document.getElementById("loadPercent"),loadPallet;window.scrollTo(0,0);if(self.loadingStyle===1){loadimg(imgPaths)}else if(self.loadingStyle===3){var logoImg=document.getElementById("preloadImg");if(logoImg.complete){initLogoImg()}else{logoImg.onload=initLogoImg}function initLogoImg(img){try{var img=logoImg;var h=img.height;var w=img.width;var bottomPageInfoDeg=-Math.atan(w/h)-Math.PI/2;var canvas=document.getElementById("preloadCanvas");var ctx=canvas.getContext("2d");var ratio=(window.devicePixelRatio||1)/(ctx.backingStorePixelRatio||ctx.webkitBackingStorePixelRatio||ctx.mozBackingStorePixelRatio||ctx.msBackingStorePixelRatio||ctx.oBackingStorePixelRatio||ctx.backingStorePixelRatio||1);var drawImg=function(){ctx.fillStyle="#000";ctx.fillRect(0.2*g_rem*ratio,0.2*g_rem*ratio,w*ratio,h*ratio);ctx.drawImage(img,0.2*g_rem*ratio,0.2*g_rem*ratio,w*ratio,h*ratio)};if(h===w){if(h>3.5*g_rem){h=w=3.5*g_rem}drawImg=function(){ctx.save();ctx.beginPath();ctx.arc(canvas.width/2,canvas.height/2,w/2*ratio,0,2*Math.PI);ctx.clip();ctx.fillStyle="#000";ctx.fill();ctx.drawImage(img,0.2*g_rem*ratio,0.2*g_rem*ratio,w*ratio,h*ratio);ctx.restore()}}else{if(w>h&&w>8*g_rem){h=8*g_rem*h/w;w=8*g_rem}else{if(h>w&&h>8*g_rem){w=8*g_rem*w/h;h=8*g_rem}}}canvas.width=(w+0.4*g_rem)*ratio;canvas.height=(h+0.4*g_rem)*ratio;canvas.style.width=w+0.4*g_rem+"px";canvas.style.height=h+0.4*g_rem+"px";if(h===w){ctx.beginPath();ctx.arc(canvas.width/2,canvas.height/2,canvas.width/2,0,2*Math.PI);ctx.clip()}ctx.strokeStyle="#69c5ff";ctx.lineWidth=8*g_rem*ratio;loadPallet=function(tmp){ctx.beginPath();ctx.arc(canvas.width/2,canvas.height/2,4*g_rem*ratio,bottomPageInfoDeg,bottomPageInfoDeg+tmp*(2*Math.PI/100));ctx.stroke();drawImg()};loadimg(imgPaths)}catch(e){alert('0:'+e)}}}function setPercent(percent){try{$loadPercent.innerHTML=percent;if(percent===100){var index=0;setTimeout(function(){index++;if(index<10){loadPallet&&loadPallet(120);setTimeout(arguments.callee,17)}else{loadPallet=null}},17)}loadPallet&&loadPallet(percent)}catch(e){alert('1:'+e)}}function loading(){try{if(numLoaded<imgPaths.length){if(percent<100-imgPaths.length+numLoaded){percent++;setPercent(percent-1)}}else{percent+=10;percent>100&&(percent=100);setPercent(percent-1)}if(percent>=100&&typeof $!='undefined'){setPercent(100);var flag=$(window).height()/$(window).width()<1.575;var bgHeight=flag?$(window).width()*1.575:$(window).height();setTimeout(function(){$("#preloadPage").addClass("leftClose");$("#homeBgBox,.gameBgBox").css("height",bgHeight/g_rem+"rem");flag&&$(".home .bottomSkill,#bottomSkill").css("top",(bgHeight-$(".bottomSkill").outerHeight())/g_rem+"rem");setTimeout(function(){$loadPercent=null;$("#preloadPage").hide()},500);complete();self.loadComplete=true;for(var n=loadCallBack.length,i=0;i<n;i++){loadCallBack[i]()}loadCallBack=null;logoImg=null;$loadPercent=null},300);return}setTimeout(arguments.callee,10)}catch(e){alert('2:'+e)}}function loadimg(arr){try{loading();for(var i=arr.length-1;i>=0;i--){var img=new Image();img.onload=loadCheckComplete;img.onerror=loadCheckComplete;img.src=arr[i];self[arr[i]]=img}if(self.loadTimeout){self._loadTimer=setTimeout(loadTimeout,self.loadTimeout)}}catch(e){alert('3:'+e)}}function loadTimeout(){}function loadCheckComplete(){try{numLoaded++;this.assets_complete=true;if(numLoaded===imgPaths.length){complete()}}catch(e){alert('4:'+e)}}function complete(){try{if(self.complete)return;clearTimeout(self._loadTimer);numLoaded=imgPaths.length;self.complete=true;for(var n=readyCallBack.length,i=0;i<n;i++){readyCallBack[i]()}readyCallBack=null}catch(e){alert('5:'+e)}}}};
+    })(hg);
+    /*----------------------------可编辑元素包装------------------------------------*/
+    hg.edit = null;
+    
+    hg.edit = {};
+    //通过conf文件配置可编辑元素的属性
+    (function(hg){
+        var origin = [{"name":"cowboy","pos":{"left":"5.75rem","top":"5.05rem"},"size":{"width":"4.5rem","height":"6.45rem"},"path":[["./img/cowboy1.png"],["./img/cowboy2.png"],["./img/cowboy3.png"],["./img/cowboy4.png"],["./img/cowboy5.png"],["./img/cowboy6.png"],["./img/cowboy7.png"]]},{"name":"p1","pos":{"left":"11.5rem","top":"20rem"},"size":{"width":"5rem","height":"7rem"},"path":["./img/p1.png"]},{"name":"p2","pos":{"left":"6.5rem","top":"20rem"},"size":{"width":"5rem","height":"7rem"},"path":["./img/p2.png"]},{"name":"p3","pos":{"left":"6.5rem","top":"20rem"},"size":{"width":"5rem","height":"7rem"},"path":["./img/p3.png"]},{"name":"stree","pos":{"left":"0.75rem","top":"15.6rem"},"size":{"width":"3.9rem","height":"3.9rem"},"path":["./img/stree.png"]},{"name":"htree","pos":{"left":"3rem","top":"13rem"},"size":{"width":"10rem","height":"4.5rem"},"path":["./img/htree.png"]},
+		{"name":"xrz","pos":{"left":"2.5rem","top":"8.5rem"},"size":{"width":"1.825rem","height":"1.975rem"},"path":["./img/xrz.png"]},
+		{"name":"gt","pos":{"left":"2.5rem","top":"8.5rem"},"size":{"width":"1.825rem","height":"1.975rem"},"path":["./img/gt.png"]},
+		{"name":"theGetPricePicTwo","pos":{"left":"1.2rem","top":"1.5rem"},"size":{"width":"13.5rem","height":"16.75rem"},"path":[["./img/faiImg2.png"]]}];
+        var originDef = [{"name":"cowboy","pos":{"left":"6rem","top":"5.8rem","disable":"disable"},"size":{"width":"4rem","height":"5.76rem"},"path":[["./img/cowboy1.png","人物跑动01","30k"],["./img/cowboy2.png","人物跑动02","30k"],["./img/cowboy3.png","人物跑动03","30k"],["./img/cowboy4.png","人物跑动04","30k"],["./img/cowboy5.png","人物跑动05","30k"],["./img/cowboy6.png","人物跑动06","30k"],["./img/cowboy7.png","人物跳跃01","100k"]],"edit":"all"},{"name":"p1","pos":{"left":"11.5rem","top":"20rem","disable":"disable"},"size":{"width":"3rem","height":"3.5rem"},"path":["*_resRoot*/image/bpb/beer.png","加10分物品","100k"],"edit":"all"},{"name":"p2","pos":{"left":"6.5rem","top":"20rem","disable":"disable"},"size":{"width":"3rem","height":"3.5rem"},"path":["*_resRoot*/image/bpb/gold.png","加50分物品","100k"],"edit":"all"},{"name":"p3","pos":{"left":"6.5rem","top":"20rem","disable":"disable"},"size":{"width":"3rem","height":"3.5rem"},"path":["*_resRoot*/image/bpb/gold.png","加50分物品","100k"],"edit":"all"},{"name":"stree","pos":{"left":"0.2rem","top":"13.5rem","disable":"disable"},"size":{"width":"3.9rem","height":"3.9rem"},"path":["*_resRoot*/image/bpb/stree.png","闪避障碍01","100k"],"edit":"all"},{"name":"htree","pos":{"left":"3rem","top":"13rem","disable":"disable"},"size":{"width":"10rem","height":"4.5rem"},"path":["./image/bpb/htree.png","跳跃障碍02","100k"],"edit":"all"},
+		{"name":"xrz","pos":{"left":"1.87rem","top":"13rem","disable":"disable"},"size":{"width":"0.75rem","height":"1rem"},"path":["./image/bpb/xrz.png","跑动参照01","100k"],"edit":"all"},
+		{"name":"gt","pos":{"left":"1.87rem","top":"13rem","disable":"disable"},"size":{"width":"0.75rem","height":"1rem"},"path":["./image/bpb/gt.png","跑动参照02","100k"],"edit":"all"},{"name":"theGetPricePic","pos":{"left":"1.2rem","top":"1.5rem"},"size":{"width":"13.5rem","height":"16.75rem"},"path":[["./img/faiImg.png","图片01","500k"]],"edit":"theGetPricePic","formDefaultStyle":true}];
+        var originMod = null;
+        
+        function correct(list1,list2){
+            return list2.map(function(val2){
+                return list1.filter(function(val1){return val1.name === val2.name;})[0] || val2;
+            });
+        }
+        originMod = originMod ? correct(originMod,originDef) : originMod;
+        origin = originMod ? correct(origin,originMod) : correct(origin,originDef);
+        //将图片放进缓存数组内
+        for(var i=0;i < originDef.length;i++){
+            var path = origin[i].path;
+            var pathDef = originMod ? originMod[i].path : originDef[i].path;
+            if(pathDef){
+                if(!path){
+                    origin[i].path = path = pathDef;
+                }else if(!isArray(path[0]) && isArray(pathDef[0])){
+                    origin[i].path = path = [].concat(pathDef).splice(0,1,path);
+                }
+                if(isArray(path[0])){
+                    for(var j=0;j < pathDef.length;j++){
+                        if(!path[j]) path[j] = pathDef[j];
+                        if(!path[j][0]) path[j][0] = pathDef[j][0];
+                        hg.assets.add(path[j][0].replace('*_resRoot*',_resRoot));
+                    }
+                }else{
+                    if(!path[0]) path[0] = pathDef[0];
+                    hg.assets.add(path[0].replace('*_resRoot*',_resRoot));
+                }
+            }
+        }
+        if(false){
+            hg.assets.add("");
+        }
+        if(false && origin[1].path[0] == _resRoot + "/image/tgcm/answer.png"){
+            origin[1].path[0] = [_resRoot + "/image/tgcm/drag.png"];
+        }
+        hg.edit.origin = origin;
+        hg.edit.originDef = originDef;
+        hg.edit.originMod = originMod;
+    })(hg);
+    
+    /*-----------------------资源loading-----------------------------*/
+    //存放所有loading好的image对象,src为key
+    hg.assets.add([]);
+    loadGamePreAssets();
+    hg.assets.loadPage();//开始loading页面
+    //全局变量
+    var g_config = {"showSkillSup":true,"showSlide":false,"isOpenAreaLimit":false,"showMenu":true,"buy":false,"isNewGame":false,"isModel":false,"test":false,"isOem":false,"scoreType":false,"countsTimeType":0,"sortType":0,"drawLimitDef":300,"scoreSet":300,"style":16,"aid":12167998,"gameId":8,"openId":"o1ueSjh_I_0M4wq8h5wGHgHO9DNw","playerId":16,"userName":"雪雪","headImg":"http://wx.qlogo.cn/mmopen/PiajxSqBRaEIrWg4rdp64EkaWAgbaGy7mEbiaR6uhDzH4MZQVOr7GGpR3lLn8mK9wYrvrnu0hKk5mstv84R7FRibg/0","authVer":0,"failSrcId":5019,"scoreUnit":"分","testCMD":"","ajaxUrl":"http://hd.faisco.cn/ajax/","startTime":"2016-12-23 13:18","setGameTimeInterval":10,"isDoubleGame":false,"bestRankInfo":{"rank":3,"score":"790"},"openAwardLinkNoDraw":false,"awardUsername":"","awardPhone":"","awardAddress":"","status":2,"afterWxCard":true,"haveAward":false,"showHelpGuide":false,"contactNoDraw":"[-1]","isAOpenId":0,"linkInfoType":1,"afterLinkModify":true,"shareDeep":2,"isFromZhuliShare":false};
+    var HdVerDef = {
+        FREE : 0,  //免费版
+        BY : 1,  //白银版
+        BJ : 2,  //铂金版
+    };
+    function isArray(arr){
+        return Object.prototype.toString.call(arr) === "[object Array]";
+    }
+</script>
+<script type="text/javascript" src="./js/jquery-core.min.js"></script>
+ 
+<script type="text/javascript" src="./js/lufylegend.min.js"></script>
+<script src="./js/js.js"></script>
+<script type="text/javascript" src="./js/hdgame.min.js"></script>
+<script>
+var jsss = 60;
+var djx,Inter;
+var speed = 0.8;
+function djx(){
+	jsss--;	
+	if(jsss >= 0){
+		$(".js div").html(jsss + 's');
+		if(speed > 0.4){
+			speed -= 0.016;
+		}
+		
+		
+		if(jsss == 0){
+			$("#road_s").css('-webkit-animation','');	
+		}
+		
+		if(jsss == 54){ //第二关
+			//alert("恭喜您闯过第一关");
+
+	 
+			$("#loupainame_jack").attr("src","img/loupai2.png");
+			
+			 //$(".loupainname_jack").animate({left:'30%'},"slow");
+			// $("#loupainame_jack").animate({width:'6.5rem'},"slow");
+			// $(".loupainname_jack").animate({left:'41%'},"slow");
+			// $("#loupainame_jack").animate({width:'2.5rem'},"slow");
+			  nowguanshu=1;
+			  
+			  //console.log('cx0003当前可以抽奖次数'+nowguanshu);
+					
+		}
+		if(jsss == 48){ //第二关
+			 
+			//alert("恭喜您闯过第二关");
+			$("#loupainame_jack").attr("src","img/loupai3.png");
+			// $(".loupainname_jack").animate({left:'30%'},"slow");
+			// $("#loupainame_jack").animate({width:'6.5rem'},"slow");
+			// $(".loupainname_jack").animate({left:'41%'},"slow");
+			// $("#loupainame_jack").animate({width:'2.5rem'},"slow");
+			  nowguanshu=2;
+			 //  console.log('cx0003当前可以抽奖次数'+nowguanshu);
+			
+		}
+		if(jsss == 42){ //第三关
+			//alert("恭喜您闯过第三关");
+			$("#loupainame_jack").attr("src","img/loupai3.png");
+			 $(".loupainname_jack").animate({left:'30%'},"slow");
+			 $("#loupainame_jack").animate({width:'6.5rem'},"slow");
+			 $(".loupainname_jack").animate({left:'41%'},"slow");
+			 $("#loupainame_jack").animate({width:'2.5rem'},"slow");
+			  nowguanshu=3;
+			  // console.log('cx0003当前可以抽奖次数'+nowguanshu);
+			
+		}
+		if(jsss == 36){ //第四关
+			//alert("恭喜您闯过第四关");
+			
+			$("#loupainame_jack").attr("src","img/loupai4.png");
+			// $(".loupainname_jack").animate({left:'30%'},"slow");
+			// $("#loupainame_jack").animate({width:'6.5rem'},"slow");
+			// $(".loupainname_jack").animate({left:'41%'},"slow");
+			// $("#loupainame_jack").animate({width:'2.5rem'},"slow");
+			  nowguanshu=4;
+			 //  console.log('cx0003当前可以抽奖次数'+nowguanshu);
+			
+		}
+		if(jsss == 30){ //第五关
+			//alert("恭喜您闯过第五关");
+			$("#loupainame_jack").attr("src","img/loupai5.png");
+			// $(".loupainname_jack").animate({left:'30%'},"slow");
+			// $("#loupainame_jack").animate({width:'6.5rem'},"slow");
+			// $(".loupainname_jack").animate({left:'41%'},"slow");
+			// $("#loupainame_jack").animate({width:'2.5rem'},"slow");
+			  nowguanshu=5;
+			  
+			  // console.log('cx0003当前可以抽奖次数'+nowguanshu);
+			
+		}
+		if(jsss == 24){ //第六关
+			//alert("恭喜您闯过第六关");
+			$("#loupainame_jack").attr("src","img/loupai6.png");
+			 $(".loupainname_jack").animate({left:'30%'},"slow");
+			 $("#loupainame_jack").animate({width:'6.5rem'},"slow");
+			 $(".loupainname_jack").animate({left:'41%'},"slow");
+			 $("#loupainame_jack").animate({width:'2.5rem'},"slow");
+			  nowguanshu=6;
+			  // console.log('cx0003当前可以抽奖次数'+nowguanshu);
+			
+		}
+		if(jsss == 18){ //第七关
+		//alert("恭喜您闯过第七关");
+		
+			$("#loupainame_jack").attr("src","img/loupai7.png");
+			// $(".loupainname_jack").animate({left:'30%'},"slow");
+			// $("#loupainame_jack").animate({width:'6.5rem'},"slow");
+			// $(".loupainname_jack").animate({left:'41%'},"slow");
+			// $("#loupainame_jack").animate({width:'2.5rem'},"slow");
+			  nowguanshu=7;
+			  // console.log('cx0003当前可以抽奖次数'+nowguanshu);
+			
+		}
+		if(jsss == 12){ //第八关
+		//alert("恭喜您闯过第八关");
+			$("#loupainame_jack").attr("src","img/loupai8.png");
+			// $(".loupainname_jack").animate({left:'30%'},"slow");
+			// $("#loupainame_jack").animate({width:'6.5rem'},"slow");
+			// $(".loupainname_jack").animate({left:'41%'},"slow");
+			// $("#loupainame_jack").animate({width:'2.5rem'},"slow");
+			  nowguanshu=8;
+			  // console.log('cx0003当前可以抽奖次数'+nowguanshu);
+			
+		}
+		if(jsss == 6){ //第九关
+		//alert("恭喜您闯过第九关");
+			$("#loupainame_jack").attr("src","img/loupai9.png");
+			 $(".loupainname_jack").animate({left:'30%'},"slow");
+			 $("#loupainame_jack").animate({width:'6.5rem'},"slow");
+			 $(".loupainname_jack").animate({left:'41%'},"slow");
+			 $("#loupainame_jack").animate({width:'2.5rem'},"slow");
+			  nowguanshu=9;
+			  // console.log('cx0003当前可以抽奖次数'+nowguanshu);
+			
+		}
+	}
+}
+function Road_animate(){
+	$("#road_s").css('-webkit-animation','road ' + speed + 's 0s steps(6) infinite');
+}
+</script>
+<script type="text/javascript">
+function $$(selector){
+    if(!_manage){
+        return $('#__notfound__');
+    }
+    return parent.$(selector);
+}
+HdGame.gameDomain = 'gdpress.cn';
+if(false){
+    HdGame.gameDomain = 'gdpress.cn';
+}
+HdGame.isReg = false;
+$(function() {
+    var html = $('html');
+    if(parseFloat(html.css('font-size')) != g_rem){
+        html.css('font-size',g_rem);
+    }
+})
+/*---------------游戏函数回调--------------------*/
+HdGame.initCallBack(hg,['startGame','startGamehead','home','again','jsFootEnd','showResult','changeBottomBar','showPoup','hidePoup','timeChange','beforeDraw','updateRankList']); //hdgame
+hg.addCallBack(['setGameType','hpInit','hgLoadEnd','save']); //hdportal
+hg.showGameBox = true; //是否在开始游戏时默认显示游戏页
+/*----------------------------可编辑元素包装------------------------------------*/
+//通过conf文件配置可编辑元素的属性
+if(hg.edit){
+    HdGame.initEdit(hg.edit);
+}
+function parseRemToPx(rem){
+    if(rem.indexOf('rem') === -1){
+        return parseFloat(rem);
+    }
+    return parseFloat(rem)*g_rem;
+}
+/*----------------------------------计时------------------------------------*/
+hg.time = null;
+
+(function(hg){
+    var initTime = 60;
+    if(!g_config.countsTimeType && initTime === 0){
+        if(!_manage){
+            initTime = 99999;
+        }else{
+            if(false){
+                initTime = 60;
+            }else{
+                initTime = 60; 
+            }
+        }
+        $(function(){$('.timeBox').hide();});
+    }
+    hg.time = HdGame.initTime(initTime);
+})(hg);
+
+/*----------------------------------计分------------------------------------*/
+
+hg.grade = HdGame.initGrade();
+var count_score = 0;
+
+/*----------------------------------声音-----------------------------------*/
+hg.sound = HdGame.initSound([{"path":"./img/bgmusic03M.mp3","fileName":"背景音乐.mp3","optFlag":0},{"path":"./img/bonus.mp3","fileName":"得分音效.mp3","optFlag":2},{"path":"./img/err.mp3","fileName":"扣分音效.mp3","optFlag":2}],[{"path":"*./img/bgmusic03M.mp3","fileName":"背景音乐.mp3","optFlag":0},{"path":"*./img/bonus.mp3","fileName":"得分音效.mp3","optFlag":2},{"path":"./img/err.mp3","fileName":"扣分音效.mp3","optFlag":2}],null);
+
+
+</script>
+<script type="text/javascript">
+    var _gameOver = true;
+    var GameArg = {
+        createTime : 0.8,
+        touchLimit : 0.5*g_rem
+    };
+    
+    var requestAnimFrame = function() {
+        return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function(a) {
+            window.setTimeout(a, 1e3 / 60, (new Date).getTime())
+        };
+    } ();
+    var Elements = {};
+    (function(g){
+        g.canvas = document.getElementById("canvas"),
+        g.ctx = g.canvas.getContext("2d");
+        var backingStore = g.ctx.backingStorePixelRatio ||
+                        g.ctx.webkitBackingStorePixelRatio ||
+                        g.ctx.mozBackingStorePixelRatio ||
+                        g.ctx.msBackingStorePixelRatio ||
+                        g.ctx.oBackingStorePixelRatio ||
+                        g.ctx.backingStorePixelRatio || 1;
+        g.ratio = (window.devicePixelRatio || 1) / backingStore;
+        var width = document.documentElement.getBoundingClientRect().width;
+        var height = document.documentElement.getBoundingClientRect().height;
+        g.canvas.width = width*g.ratio;
+        g.canvas.height = height*g.ratio;
+        g.canvas.style.width = width + 'px';
+        g.canvas.style.height = height + 'px';
+        g.speed = g.canvas.width / 3000;
+        g.inte = 0.1*g_rem*g.ratio;
+        g.pointY = 2*g_rem*g.ratio;
+        g.faiY = 5.2*g_rem*g.ratio;
+        g.cowboyY = g.canvas.height/2;
+        g.crashY = 1.3*g_rem*g.ratio;
+        g.scoreCanvasW = 2*g_rem*g.ratio;
+        g.scoreCanvasH = 1*g_rem*g.ratio;
+    })(GameArg);
+
+    (function(e,g) {
+        function Goods(imgData,type,offsetY) {
+            this.imgData = imgData,
+            this.name = imgData.name,
+            this.initW = imgData.width*g.ratio;
+            this.initH = imgData.height*g.ratio;
+            this.initY = (imgData.top + imgData.height)*g.ratio;
+            this.type = type;
+            this.img = hg.assets[imgData.path];
+            this.offsetY = offsetY || g.canvas.height;
+            this.update();
+            if(type === 0 || type === 4){
+                this.CD = false;
+            }
+        }
+        Goods.prototype.update = function(type,offsetY,flag){
+            var offsetY = offsetY || this.offsetY,
+                k = (offsetY - g.pointY)/(this.initY - g.pointY),
+                inte = this.name === 'gt' ? k*12*g.inte : k*g.inte,
+                width = k*this.initW,
+                height = k*this.initH,
+                speed = (offsetY - g.pointY)/(g.cowboyY - g.pointY)*g.speed,
+                offsetX;
+            type && (this.type = type);
+            switch(this.type){
+                case 0:
+                    offsetX = 9.25*g_rem*g.ratio - 0.43*offsetY - width - inte;
+                    break;
+                case 1:
+                    offsetX = 9*g_rem*g.ratio - 0.283*offsetY - 0.5*width;
+                    break;
+                case 2:
+                    offsetX = 8.18*g_rem*g.ratio - 0.0067*offsetY - 0.5*width;
+                    break;
+                case 3:
+                    offsetX = 7.75*g_rem*g.ratio + 0.225*offsetY - 0.5*width;
+                    break;
+                case 4:
+                    offsetX = 7.3*g_rem*g.ratio + 0.42*offsetY + inte;
+                    break;
+            }
+            if(flag){
+                return {
+                    width : width,
+                    height : height,
+                    speed : speed,
+                    offsetX : offsetX
+                }
+            }
+            this.width = width;
+            this.height = height;
+            this.speed = speed;
+            this.offsetX = offsetX;
+        }
+        Goods.prototype.render = function(ctx,delta){
+            if(!this.img){
+                return;
+            }
+            if(typeof this.CD !== 'undefined' && this.CD){
+                this.CD = !this.CD;
+                return;
+            }
+            this.offsetY -= this.speed*delta;
+            this.update();
+            ctx.drawImage(this.img,this.offsetX,this.offsetY-this.height,this.width,this.height);
+        };
+        e.Goods = Goods;
+    })(Elements,GameArg);
+    (function(e,g) {
+        function setScoreCanvas(score){
+            var scoreCanvas = $('<canvas width='+g.scoreCanvasW+' height='+g.scoreCanvasH+' ></canvas>')[0],
+                scoreCtx = scoreCanvas.getContext("2d"),
+                scoreStr = score >= 0 ? '+'+score : '' + score;
+            scoreCtx.font = "bold " + g.ratio*g_rem + "px Arial";
+            scoreCtx.textAlign = "center";
+            scoreCtx.baseBaseLine = "middle";
+            if(score < 0){
+                scoreCtx.fillStyle = "#f52121";
+            }else{
+                scoreCtx.fillStyle = "#ffffff";
+            }
+            scoreCtx.fillText(scoreStr,g.scoreCanvasW/2,g.scoreCanvasH);
+            g['scoreCanvas'+score] = scoreCanvas;
+            g['scoreCtx'+score] = scoreCtx;
+        }
+        function getScoreCanvas(score) {
+            if(!g['scoreCanvas'+score]){
+                setScoreCanvas(score);
+            }
+            return g['scoreCanvas'+score];
+        }
+        function Score(offsetX,offsetY,score) {
+            this.offsetY = offsetY || 0;
+            this.offsetX = offsetX || 0;
+            this.scoreCanvas = getScoreCanvas(score);
+            this.y = 0;
+        }
+        Score.prototype.speed = 1.2*g_rem/1000;
+        Score.prototype.width = g.scoreCanvasW;
+        Score.prototype.height = g.scoreCanvasH;
+        Score.prototype.render = function(ctx,delta){
+            this.offsetY -= this.speed*delta;
+            this.y += this.speed*delta;
+            ctx.drawImage(this.scoreCanvas,this.offsetX,this.offsetY-this.height,this.width,this.height);
+        };
+        e.Score = Score;
+    })(Elements,GameArg);
+    hg.assets.onReady(function(){
+        (function(e,g) {
+            var cowboy = new e.Goods(hg.edit.getImgInfo('cowboy'),2);
+            cowboy.offsetY = g.cowboyY;
+            cowboy.update();
+            cowboy.runFps = 6*cowboy.speed/cowboy.width;
+            cowboy.frameInc = 0;
+            cowboy.jumpEndTime = 800;
+            cowboy.dodgeEndTime = 400;
+            cowboy.jumpEndY = cowboy.height;
+            cowboy.run = function(){
+                this.status = 'run';
+                this.img = [hg.assets[this.imgData.path[0]],hg.assets[this.imgData.path[1]],hg.assets[this.imgData.path[2]],hg.assets[this.imgData.path[3]],hg.assets[this.imgData.path[4]],hg.assets[this.imgData.path[5]]];
+            };
+            cowboy.jump = function(jumpEndY,jumpEndTime){
+                if(this.status === 'jump'){
+                    return;
+                }
+                this.status = 'jump';
+                jumpEndTime && (this.jumpEndTime = jumpEndTime);
+                jumpEndY && (this.jumpEndY = jumpEndY);
+                this.jumpTime = 0;
+                this.jumpStartSpeed = 2*this.jumpEndY/this.jumpEndTime;
+                this.jumpSpeed = this.jumpStartSpeed;
+                this.img = hg.assets[this.imgData.path[6]];
+            };
+            cowboy.dodge = function(flag,dodgeEndTime){
+                var type , offsetX;
+                if(flag === 'left'){
+                    type = e.cowboy.type-1;
+                }else if(flag === 'right'){
+                    type = e.cowboy.type+1;
+                }
+                if(type < 1 || type > 3){
+                    return;
+                }
+                this.dodgeX = this.update(type,g.cowboyY,true).offsetX;
+                this.dodgeTime = 0;
+                dodgeEndTime && (this.dodgeEndTime = dodgeEndTime);
+                this.dodgeSpeed = (this.dodgeX - this.offsetX)/this.dodgeEndTime;
+                this.dodgeing = true;
+            };
+            cowboy.render = function(ctx,delta){
+                var img;
+                switch(this.status){
+                    case 'run':
+                        this.frameInc += this.runFps*delta;
+                        var frameInc = Math.floor(this.frameInc);
+                        img = this.img[frameInc % this.img.length];
+                        break;
+                    case 'jump':
+                        this.offsetY -= this.jumpSpeed*delta;
+                        this.jumpTime += delta;
+                        this.jumpSpeed = this.jumpStartSpeed - 2*this.jumpStartSpeed*this.jumpTime/this.jumpEndTime;
+                        img = this.img;
+                        if(this.jumpTime >= this.jumpEndTime){
+                            this.offsetY = g.cowboyY;
+                            this.run();
+                        }
+                        break;
+                }
+                if(!img){
+                    return;
+                }
+                if(this.dodgeing){
+                    this.offsetX += this.dodgeSpeed*delta;
+                    this.dodgeTime += delta;
+                    if(this.dodgeTime >= this.dodgeEndTime){
+                        this.offsetX = this.dodgeX;
+                        this.dodgeing = false;
+                    }
+                }
+                ctx.drawImage(img,this.offsetX,this.offsetY-this.height,this.width,this.height);
+            };
+            cowboy.run();
+            e.cowboy = cowboy;
+            LF.setTopBarNotLF(g.canvas,g.ratio);
+        })(Elements,GameArg);
+    });
+    $(function(){
+        function initTapEvent(el,jumpCallBack,dodgeCallBack){
+            el = el || GameArg.canvas; 
+            el.addEventListener("touchstart", function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                if(_gameOver){
+                    return;
+                }
+                GameArg.lastPageX = event.changedTouches[0].pageX;
+                GameArg.lastPageY = event.changedTouches[0].pageY;
+                GameArg.touchJumpFlag = false;
+                GameArg.touchDodgeFlag = false;
+                GameArg.touchCrrLimit = GameArg.touchLimit;
+            },false);
+            el.addEventListener("touchmove", function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                if(_gameOver){
+                    return;
+                }
+                var pageX = event.changedTouches[0].pageX;
+                var pageY = event.changedTouches[0].pageY;
+                if(!GameArg.touchDodgeFlag && pageX < GameArg.lastPageX - GameArg.touchCrrLimit){
+                    Elements.cowboy.dodge('left');
+                    dodgeCallBack && dodgeCallBack.call(el);
+                    GameArg.touchDodgeFlag = true;
+                    GameArg.touchCrrLimit = GameArg.touchLimit*6;
+                }else if(!GameArg.touchDodgeFlag && pageX > GameArg.lastPageX + GameArg.touchCrrLimit){
+                    Elements.cowboy.dodge('right');
+                    dodgeCallBack && dodgeCallBack.call(el);
+                    GameArg.touchDodgeFlag = true;
+                    GameArg.touchCrrLimit = GameArg.touchLimit*6;
+                }
+                if(!GameArg.touchJumpFlag && pageY <  GameArg.lastPageY - GameArg.touchCrrLimit){
+                    Elements.cowboy.jump();
+                    jumpCallBack && jumpCallBack.call(el);
+                    GameArg.touchJumpFlag = true;
+                    GameArg.touchCrrLimit = GameArg.touchLimit*6;
+                }
+            },false);
+        }
+        initTapEvent();
+        initTapEvent($('#tishi1')[0],function(){
+            $(this).hide();
+			//Road_animate();
+            hg.time.start();
+			Inter = setInterval(djx,1000);
+            $(this).data('tishi_timer',setTimeout(function(){
+                addGoods(2,'stree');
+                $(this).data('tishi_timer',setTimeout(function(){
+                    hg.time.pause(); //时间暂停 jack
+					clearInterval(Inter);
+					$("#road_s").css('-webkit-animation',''); 
+                    $('#tishi2').show();
+                },1000));
+            },1000));
+        });
+        initTapEvent($('#tishi2')[0],false,function(){
+            $(this).hide();
+			//Road_animate();
+            hg.time.start();
+			Inter = setInterval(djx,1000);
+            gamePlay();
+        });
+    });
+    function addGoods(type,name,offsetY){
+        GameArg.goodsList.push(new Elements.Goods(hg.edit.getImgInfo(name),type,offsetY));
+    }
+	 
+    function startGame(){ //开始游戏的起点。
+		//alert(1);return false;
+		$("#audioMusic").trigger('pause');
+        _gameOver = false,  
+        clearTimeout(GameArg.updateTimer),
+        clearTimeout(GameArg.asideTimer),
+        clearTimeout(GameArg.playTimer),
+        GameArg.goodsList = [],
+        GameArg.scoreList = [],
+        GameArg.createTimeRatio = 1,
+        GameArg.speed = GameArg.canvas.width / 3000,
+        GameArg.ctx.clearRect(0,0,GameArg.canvas.width,GameArg.canvas.height);
+        GameArg.asideFlag = 0;
+        GameArg.goodsList.push(Elements.cowboy);
+        Elements.cowboy.update(2,GameArg.cowboyY);
+        GameArg.currentTime = 0;
+        window.scrollTo(0,0);
+       // addGoods(0,'gt',GameArg.canvas.height*3/8);
+		 
+      //  addGoods(4,'xrz',GameArg.canvas.height*3/8);
+     
+       
+        updateGame();
+        setAside();
+	 /*	 $(".js").show();
+	 	$(".jf").show(); */
+        hg.time.start();
+		Inter = setInterval(djx,1000);
+        if(!HdGame.isplaySucess){
+            setTimeout(function(){
+                addGoods(2,'htree');
+                setTimeout(function(){
+                    hg.time.pause();
+					clearInterval(Inter); 
+                    $('#tishi1').show();
+					$("#road_s").css('-webkit-animation','');
+                },1000);
+            },2000);
+        }else{
+            gamePlay();
+        }
+    }
+    GameArg.nameList = [
+        ['p1',0.25],
+        ['p2',0.5],
+        ['p3',0.7],
+        ['stree',0.85],
+        ['htree',1]
+    ];
+    function geName(){
+        var random = Math.random(),name;
+        for(var i =0;i < GameArg.nameList.length;i++) {
+            var tem = GameArg.nameList[i];
+            if(random <= tem[1]){
+                name = tem[0];
+                break;
+            }
+        }
+        if((name === 'stree' || name === 'htree') &&  name === GameArg.lastGoods){
+            return arguments.callee();
+        }
+        GameArg.lastGoods = name;
+        return name;
+    }
+    function gamePlay(){
+        if(_gameOver){
+            return;
+        }
+        var name, type , create_time = GetRandomNum(500,800);
+        if(hg.time.isRunning()){
+            name = geName();
+            type = name === 'htree' ? 2 : GetRandomNum(1,3),
+            GameArg.goodsList.push(new Elements.Goods(hg.edit.getImgInfo(name),type));
+        }
+        GameArg.playTimer = setTimeout(arguments.callee,create_time*GameArg.createTimeRatio);   
+    }
+    function setAside(){
+        if(_gameOver){
+            return;
+        }
+        if(hg.time.isRunning()){
+            var create_time = GameArg.canvas.height/(GameArg.speed*8);
+            if(GameArg.asideFlag%2){
+		    //	addGoods(0,'gt'); //左边 jack
+            //   addGoods(0,'gt');//左边 jack
+                
+            }else{
+             //   addGoods(4,'xrz');//右边 jack
+             //  addGoods(4,'xrz');//右边 jack
+            }
+            GameArg.asideFlag++;
+        }
+        GameArg.asideTimer = setTimeout(arguments.callee,create_time); 
+    }
+    function setScore(score){
+        if(score < 0){
+            hg.sound.play(2);
+        }else{
+            hg.sound.play(1);
+        }
+        var cowboy = Elements.cowboy;
+        hg.grade(score);
+        GameArg.scoreList.push(new Elements.Score(cowboy.offsetX + cowboy.width/2 - GameArg.scoreCanvasW/2,cowboy.offsetY - cowboy.height,score));
+		var score_s = score;
+		count_score += score_s;
+		if(count_score>=0){
+			$(".jf div").html(count_score);
+		}else{
+			count_score = 0;
+			$(".jf div").html(count_score);
+		}
+		
+    }
+    function updateGame(){
+        if(_gameOver){
+            return;
+        }
+        var currentTime = (new Date).getTime();
+        var delta = currentTime - GameArg.currentTime;
+        GameArg.currentTime = currentTime;
+        delta > 500 && (delta = 0);
+        if(hg.time.isRunning()){
+            var flag = false,
+                cowboy = Elements.cowboy;
+            GameArg.ctx.clearRect(0,0,GameArg.canvas.width,GameArg.canvas.height);
+            GameArg.goodsList = quickSort(GameArg.goodsList);
+            for(var i = 0;i < GameArg.goodsList.length;i++){
+                var tem = GameArg.goodsList[i];
+                if(tem.name !== 'cowboy' && tem.offsetY < GameArg.faiY){
+                    GameArg.goodsList.splice(i,1);
+                    if(!GameArg.goodsList[i]){
+                        continue;
+                    }
+                }
+                if(tem.name === 'htree'){
+                    if(cowboy.status !== 'jump' && tem.offsetY > GameArg.cowboyY && tem.offsetY < GameArg.cowboyY + GameArg.crashY){
+                        //setScore(-80);
+						//这里是碰到障碍物游戏结束 ->jack  start
+						// alert(1111); hg.grade.val => 全局的积分值
+						// alert(hg.grade.val);
+						console.log('now time :'+hg.time.val);
+					    clearTimeout(GameArg.updateTimer);
+						clearTimeout(GameArg.asideTimer);
+						clearTimeout(GameArg.playTimer);
+						_gameOver = true;
+						
+						 $('#tishi1,#tishi2').each(function(index, el) {
+							clearTimeout($(this).data('tishi_timer'));
+							$(this).off().hide();
+							$(this).removeData('tishi_timer');
+						});
+						//alert(hg.grade.val);jack 游戏倒计时结束
+						gameOver(hg.grade.val);
+						$('.gameBox').on('touchmove',function(event){
+								event.preventDefault();
+								event.stopPropagation();
+						});
+					//这里是碰到障碍物游戏结束 ->jack  end
+						//alert(1);
+                        GameArg.goodsList.splice(i,1);
+					 
+					 
+					  
+						
+                    }
+                }else if(tem.type === cowboy.type){
+                    if(tem.name === 'p1' && tem.offsetY > GameArg.cowboyY - GameArg.crashY && tem.offsetY < GameArg.cowboyY + GameArg.crashY){
+                        setScore(10);
+                        GameArg.goodsList.splice(i,1);
+                    }else if(tem.name === 'p2' && tem.offsetY > GameArg.cowboyY - GameArg.crashY && tem.offsetY < GameArg.cowboyY + GameArg.crashY){
+                        setScore(10);
+                        GameArg.goodsList.splice(i,1);
+                    }else if(tem.name === 'p3' && tem.offsetY > GameArg.cowboyY - GameArg.crashY && tem.offsetY < GameArg.cowboyY + GameArg.crashY){
+                        setScore(10);
+                        GameArg.goodsList.splice(i,1);
+                    }else if(tem.name === 'stree' && tem.offsetY > GameArg.cowboyY && tem.offsetY < GameArg.cowboyY + GameArg.crashY){
+                       // setScore(-80);
+                        GameArg.goodsList.splice(i,1);
+						
+						// event.stopPropagation(); //停止游戏
+						   
+						//这里是碰到障碍物游戏结束 ->jack  start
+						// alert(1111); hg.grade.val => 全局的积分值
+						// alert(hg.grade.val);
+						console.log('now time :'+hg.time.val);
+					    clearTimeout(GameArg.updateTimer);
+						clearTimeout(GameArg.asideTimer);
+						clearTimeout(GameArg.playTimer);
+						_gameOver = true;
+						
+						 $('#tishi1,#tishi2').each(function(index, el) {
+							clearTimeout($(this).data('tishi_timer'));
+							$(this).off().hide();
+							$(this).removeData('tishi_timer');
+						});
+						//alert(hg.grade.val);jack 游戏倒计时结束
+						gameOver(hg.grade.val);
+						$('.gameBox').on('touchmove',function(event){
+								event.preventDefault();
+								event.stopPropagation();
+						});
+					//这里是碰到障碍物游戏结束 ->jack  end
+                    }
+                } 
+                if(!GameArg.goodsList[i]){
+                    continue;
+                }
+                if(tem.name === 'cowboy' && cowboy.status === 'jump' && cowboy.jumpSpeed < 0){
+                    flag = true;
+                    continue;
+                }
+                GameArg.goodsList[i].render(GameArg.ctx,delta);
+            }
+            flag && Elements.cowboy.render(GameArg.ctx,delta);
+            for(var i = 0;i < GameArg.scoreList.length;i++){
+                if(GameArg.scoreList[i].y > 1.2*g_rem*GameArg.ratio){
+                    GameArg.scoreList.splice(i,1);
+                    if(!GameArg.scoreList[i]){
+                        continue;
+                    }
+                }
+                GameArg.scoreList[i].render(GameArg.ctx,delta);
+            }
+            hg.time.updateInFrame(delta);
+            LF.showTopBar();
+        }
+        GameArg.updateTimer = requestAnimFrame(updateGame);
+    }
+    function quickSort(arr) {
+    　　if (arr.length <= 1) { return arr; }
+    　　var pivotIndex = Math.floor(arr.length / 2);
+    　　var pivot = arr.splice(pivotIndex, 1)[0];
+    　　var left = [];
+    　　var right = [];
+    　　for (var i = 0; i < arr.length; i++){
+    　　　　if (arr[i].offsetY < pivot.offsetY) {
+    　　　　　　left.push(arr[i]);
+    　　　　} else {
+    　　　　　　right.push(arr[i]);
+    　　　　}
+    　　}
+    　　return quickSort(left).concat([pivot], quickSort(right));
+    }
+    function isIPhone6(){
+        return window.navigator.userAgent.indexOf('iPhone') !== -1&&(window.screen.availWidth === 375 || window.screen.availWidth === 414);
+    }
+    function isIPhone4(){
+        return window.navigator.userAgent.indexOf('iPhone') !== -1&&(window.screen.availHeight === 460);
+    }
+    function isAndroid(){
+        return window.navigator.userAgent.indexOf('Android') !== -1;
+    }
+    function GetRandomNum(a,b){
+        return a+Math.round(Math.random()*(b-a));
+    }
+    
+
+    $(function(){          
+        gameInit();
+        if(_manage){        
+            $('#gameLayerBox [class*="editTarget"]')
+            .setResizableOption({handles:'n,e,w,ne,nw'})
+            .addResizableFn('start',function(event,ui){
+                $(this).data('middle',parseFloat($(ui.element).css('left')) + $(ui.element).width()/2);
+                if(ui.axis === 'ne' || ui.axis === 'nw'){
+                    $(this).data({
+                        'HWratio' : $(ui.element).height()/$(ui.element).width(),
+                        'bottom'  : parseFloat($(ui.element).css('top')) + $(ui.element).height()
+                    });
+                }
+            }).addResizableFn('resize',function(event,ui){
+                setResize(this,ui);
+            }).addResizableFn('stop',function(event,ui){
+                setResize(this,ui);
+                $(this).removeData('middle').removeData('HWratio').removeData('bottom');
+            });
+            function setResize(el,ui){
+                var orientation = ui.axis,
+                    middle = $(el).data('middle'),
+                    left = parseFloat($(ui.element).css('left')),
+                    width = $(ui.element).width(),
+                    widthCrr,
+                    maxWidth = $('body').width() -3,
+                    maxHeight = $('body').height() -3;
+                if(orientation.indexOf('w') !== -1){
+                    if(2*middle - left >= maxWidth){
+                        widthCrr = 2*(maxWidth - middle);
+                    }else{
+                        widthCrr = 2*(middle - left);
+                        $(ui.element).add(el).css('width',2*(middle - left));
+                    }
+                }else{
+                    if(2*middle - left - width <= 0){
+                        widthCrr = 2*middle;
+                        $(ui.element).add(el).css({
+                            'width' : 2*middle,
+                            'left'  : 0
+                        });
+                    }else{
+                        widthCrr = 2*(left + width - middle);
+                    }
+                }
+                if(widthCrr <= 10){
+                    widthCrr = 10;
+                }
+                if(orientation === 'ne' || orientation === 'nw'){
+                    var heightCrr = widthCrr * $(el).data('HWratio');
+                    var bottom = $(el).data('bottom');
+                    heightCrr <= 10 && (heightCrr = 10);
+                    if(heightCrr >= bottom){
+                        heightCrr = bottom;
+                        widthCrr = heightCrr / $(el).data('HWratio');
+                    }
+                    $(ui.element).add(el).css({
+                        'height' : heightCrr,
+                        'top'  : bottom - heightCrr
+                    });
+                }
+                $(ui.element).add(el).css({
+                    'width' : widthCrr,
+                    'left'  : middle - widthCrr/2
+                });
+            }
+        }else{
+            hg.on('startGame',startGame);
+            hg.time.setAcceList(4);
+            hg.time.updateFlag = false;
+            hg.time.on('acce',function(index){
+                GameArg.createTimeRatio = 1 - 0.1*index;
+                GameArg.speed = GameArg.canvas.width / (3000 - 300*index);
+            }).on('end',function(){
+                $('#tishi1,#tishi2').each(function(index, el) {
+                    clearTimeout($(this).data('tishi_timer'));
+                    $(this).off().hide();
+                    $(this).removeData('tishi_timer');
+                });
+                clearTimeout(GameArg.updateTimer);
+                clearTimeout(GameArg.asideTimer);
+                clearTimeout(GameArg.playTimer);
+                _gameOver = true;
+                setTimeout(function(){
+					//alert(hg.grade.val);jack 游戏倒计时结束
+                    gameOver(hg.grade.val);
+                },1000);
+            });
+        }
+        $('.gameBox').on('touchmove',function(event){
+            event.preventDefault();
+            event.stopPropagation();
+        });
+    }); 
+    
+    function gameInit() {
+        hg.time.init();
+        hg.grade.set(0);
+        $('.timeUpImg').hide();
+    }
+    function home(){
+        $('#ruleImg').show();
+        $('.homeBtnBox').show();
+        $('.footerBox').show();
+        $('.gameBox').hide();
+        startBtnDelay();
+        $('.home').show();
+        $('#poupInfoBox').hide();
+        $('.resuleBox').hide();
+        gameInit();
+        hg.fire('home');
+    }
+    function gameRestart() {
+        $('.gameBox').show();
+        gameInit();
+        if(!_manage){
+            startGame();
+        }
+        hg.fire('again');
+    }
+    function showGamePage(){
+        $('#ruleImg').hide();
+        $('.homeBtnBox').hide();
+        $('.footerBox').hide(); 
+        $('.home').hide();
+        $('#poupInfoBox').hide();
+        $('.resuleBox').hide();
+        $('.gameBox').show();
+    }
+    function  computeMaxGrade(time){
+        var it = time/5;
+        var g = 0;
+        for(var i = 0;i < 5;i++){
+            g += 50*it/(0.5*(1-i*0.1))
+        }
+        return g;
+    }
+</script>
+
+<script type="text/javascript">
+
+   
+    var count = 3;
+    var isPublish = true;
+    var drawTimesLimit = 3;
+    var drawTotalLimit = 6;
+    var totalCount = 3;
+    var isLimitDraw = false;
+    var showAwardList = false;
+    var informNum = 0;
+    var playerAwardList = [];
+    var skillSupportType = 2;
+	var gameType = 0;
+    var rankShowNum = 100;
+   HdGame.initJsFoot({"rulesortstr":"abcde","drawType":1,"hostName":"美女们小伙伴","hostLink":"http://","menuLink":"","fromFav":"","openAwardExp":true,"isHideFxts":true,"supportUrl":"http://mp.weixin.qq.com/s?__biz=MjM5MTk5MjI3OA==&mid=209854000&idx=1&sn=82241d924839270d3ea820ad2d56c01b#rd","showJoinNum":true,"showRedDot":false,"showMDRedDot":false,"showAwardBtn":false,"isSelAwardLine":false,"showSkillSup":true,"menuStyle":3,"soundIcon_l":"0.75rem","soundIcon_t":"1rem","awardImage":"./img/gift.png","titleImg_path_def":"./img/bpb/title.png","startImg_path_def":"./img/bpb/startBtn.png","awardIconImgPath_def":"./img/ruleImg_red.png","titleImg_w_def":"15rem","titleImg_h_def":"6rem","startBtn_w_def":"8rem","startBtn_h_def":"2.5rem","logoImg_w_def":"2rem","logoImg_h_def":"2rem","awardImg_w_def":"6rem","awardImg_h_def":"6rem","homeBgPath_def":"./img/bpb/homeBg.jpg","gameBg2Path_def":"","gameBgPath_def":"./img/bpb/gameBg.jpg?v=201509081300","headImg2":"","headImg3":"","headImg4":"","dangerType":1})
+
+  
+    //标题与开始按钮动画
+    function startBtnDelay(){
+	 
+    
+        hg.sound.pauseAll();
+        
+        
+    }
+    
+	function showRule(){
+        HdGame.changePoup(2);
+        $('#awardDetailBox').hide();
+	}
+	function startBtnAjax(event,data){
+        if(false){
+            HdGame.statusMsg(2);
+            hg.sound.allowPlay = false;
+            hg.sound.pauseAll();
+            return false;
+        }
+        var that = this;
+		
+        if(hg.showGameBox){
+            $('.homeBtnBox,.bottomSkill').hide();
+            $('.footerBox').hide(); 
+            $('.home,#ruleImg').hide();
+            $('.gameBox').show();
+			//Road_animate();
+            if(typeof hg.sound.cache[0] !== 'undefined' && typeof hg.sound.cache[0].playing !== 'undefined' && !hg.sound.cache[0].playing && g_config.style != 48){
+                hg.sound.readyPlay(0,0,'loop');
+            }
+        }
+        HdGame.logDog(1000002, 5019);
+        HdGame.logObjDog(1000092, 1, 8);
+        HdGame.addJoinGameBehavior();
+        hg.fireWith('startGame',that,[false,event,data]);
+        return true;
+    }
+	  var nowguanshuend = 0; 
+	 
+	 function jacknowguanzhuEnd(){  //游戏结束统计的 判断当前关数 
+	   var endStart  =parseInt(hg.time.val);
+			
+			if(endStart <= 41){ //第三关
+				//alert("恭喜您闯过第三关");
+			 
+				  nowguanshuend=1;
+				   console.log('cx0004当前可以抽奖次数'+nowguanshuend);
+				
+			}
+			
+			if(endStart <= 23){ //第六关
+				//alert("恭喜您闯过第六关");
+				 
+				  nowguanshuend=2;
+				   console.log('cx0004当前可以抽奖次数'+nowguanshuend);
+				
+			}
+			
+			if(endStart <= 0){ //第九关
+			//alert("恭喜您闯过第九关");
+		 
+				  nowguanshuend=3;
+				   console.log('cx0004当前可以抽奖次数'+nowguanshuend);
+				
+			}
+	 }
+	var guanshu =1;	
+    function gameOver(_gameScore,callBack,option){
+        
+		/*if(_gameScore === 'fail'){			
+			setTimeout(function(){
+				HdGame.resulePoup.show({
+                    isSuc:false,
+                    gameScore:"fail",//闯关失败
+                    minScore:300,
+                    bestScore:'790',
+                    gameType:gameType,
+                    rank:3,
+                    count:drawTimesLimit-count<0 ? 0:(drawTimesLimit-count),
+                    isLimitDrawTotal:isLimitDraw,
+                    totalCount: drawTotalLimit - totalCount < 0 ? 0 : (drawTotalLimit - totalCount)
+                });
+			},900);
+			return;
+		}*/
+		
+		//$(".soundIcon").hide();
+		$(".life").hide();
+        if(isNaN(_gameScore) || _gameScore < 0){
+            _gameScore = 0;
+        }
+        var _gameScoreStr = _gameScore + '';
+/*jack 温馨提示这里 ->跑完步的信息流都在这里 */
+   var endStart  =parseInt(hg.time.val);
+   jacknowguanzhuEnd(); //当前闯关过的
+		 if(nowguanshuend == 0 ){
+			$(".result-content").html('很遗憾，闯关失败请再次尝试');
+			$("#success").show(); 
+			$(".result_text").html(_gameScore);
+			$(".R_game").show();
+			$(".Result").show();
+		 }else{
+			 /*游戏接口接口 start*/
+			if(game_id!==0){ //游戏结束 接口 -》判断当前开始有游戏ID存在
+				/*
+					openid=》 微信的openid
+					_gameScore => 当前分数
+					nowguanshuend => 当前关数
+					game_id => 当前开始游戏的ID
+				*/
+				xhrurl = 'http://elu.1024cmi.com/Home/Index/endGame';
+				if(openid !==null){
+					 $.post(xhrurl,{openId:openid,id:game_id,score:_gameScore,num:nowguanshuend},function(data){
+							 if(data.code ==10000){
+								console.log("结束游戏成功！");
+							}else{
+								//alert(data.msg);
+								alert_html5(data.msg);
+							}
+						});
+				 
+				}else{
+					//alert('页面没有openid，请重新刷新页面，错误码:cx00002');
+					alert_html5("页面没有openid，请重新刷新页面");
+					return  false;
+				}
+				 
+			}else{
+			
+			 //这里应该跳回首页 重新点击开始游戏.不太想做这个跳转。毕竟前面开始游戏的接口就没有判断获取不到game_id 就重新ajax一次...
+			}
+			 /*游戏接口接口 end*/
+			 
+			$(".result-content").html('恭喜您闯过'+nowguanshuend+'关，赢得'+nowguanshuend+'次抽奖机会');
+			$("#success").show(); 
+			$(".result_text").html(_gameScore);
+			$(".R_game").show();
+			$(".Result").show();
+			 
+		 }
+	 
+		 
+		/*	if( _gameScore < 600){ 
+                $("#fail").show(); 
+                $(".result_text").html(_gameScore);
+            }else{
+                $("#success").show(); 
+                $(".result_text").html(_gameScore);  
+            } 
+			*/
+     // $.post('4.php.htm',{openid:openid,grade:_gameScore},function(data){
+     //       if( _gameScore < 600){ 
+    //            $("#fail").show(); 
+    //            $(".result_text").html(_gameScore);
+    //        }else{
+    //            $("#success").show(); 
+    //            $(".result_text").html(_gameScore);  
+    //        } 
+    //    });
+
+	/*jack 温馨提示这里 end*/	
+
+		wx.onMenuShareAppMessage({
+			title: 'E路同行，闯关有礼',
+			desc: 'E路同行，闯关有礼',
+			link: 'http://wx.greatlife.cn/eservice/authorize/thirdAuthorize.action?action=activityAuthorize&redirect_url=http://elu.1024cmi.com/Home/Index/toIndex&scope=snsapi_base',
+			imgUrl: 'https://ss0.baidu.com/6ONWsjip0QIZ8tyhnq/it/u=1855742931,439235201&fm=58&s=88A67C329CB1859203606DEF02007023&bpow=121&bpoh=75',
+			trigger: function (res) {
+			},
+			success: function (res) {
+			}
+		});
+		wx.onMenuShareTimeline({
+			title: 'E路同行，闯关有礼',
+			link: 'http://wx.greatlife.cn/eservice/authorize/thirdAuthorize.action?action=activityAuthorize&redirect_url=http://elu.1024cmi.com/Home/Index/toIndex&scope=snsapi_base',
+			imgUrl: 'https://ss0.baidu.com/6ONWsjip0QIZ8tyhnq/it/u=1855742931,439235201&fm=58&s=88A67C329CB1859203606DEF02007023&bpow=121&bpoh=75',
+			trigger: function (res) {
+			},
+			success: function (res) {
+			}
+		});
+    }
+
+
+
+</script>
+ 
+		
+		
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+<script>
+var _mtac = {};
+(function() {
+    var mta = document.createElement("script");
+    mta.src = "http://pingjs.qq.com/h5/stats.js?v2.0.2";
+    mta.setAttribute("name", "MTAH5");
+    mta.setAttribute("sid", "500465300");
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(mta, s);
+})();
+</script>
+<script>
+ 
+    var number = "3";
+
+    wx.config({
+        appId: appId_share,
+        timestamp: timestamp_share,
+        nonceStr: nonceStr_share,
+        signature: signature_share,
+        jsApiList: [
+            'onMenuShareAppMessage',
+            'onMenuShareTimeline'
+        ]
+    });
+    wx.ready(function () {
+
+        if(number <= 0){
+
+            wx.onMenuShareAppMessage({
+                title: 'E路同行，闯关有礼',
+                desc: 'E路同行，闯关有礼',
+                link: 'http://wx.greatlife.cn/eservice/authorize/thirdAuthorize.action?action=activityAuthorize&redirect_url=http://elu.1024cmi.com/Home/Index/toIndex&scope=snsapi_base',
+                imgUrl: 'https://ss0.baidu.com/6ONWsjip0QIZ8tyhnq/it/u=1855742931,439235201&fm=58&s=88A67C329CB1859203606DEF02007023&bpow=121&bpoh=75',
+                trigger: function (res) {
+                },
+                success: function (res) {
+                }
+            });
+            wx.onMenuShareTimeline({
+                title: 'E路同行，闯关有礼',
+                link: 'http://wx.greatlife.cn/eservice/authorize/thirdAuthorize.action?action=activityAuthorize&redirect_url=http://elu.1024cmi.com/Home/Index/toIndex&scope=snsapi_base',
+                imgUrl: 'https://ss0.baidu.com/6ONWsjip0QIZ8tyhnq/it/u=1855742931,439235201&fm=58&s=88A67C329CB1859203606DEF02007023&bpow=121&bpoh=75',
+                trigger: function (res) {
+                },
+                success: function (res) {
+                }
+            });
+        }else{
+
+    		wx.onMenuShareAppMessage({
+    			title: 'E路同行，闯关有礼',
+    			desc: 'E路同行，闯关有礼 E路同行，闯关有礼',
+    			link: 'http://wx.greatlife.cn/eservice/authorize/thirdAuthorize.action?action=activityAuthorize&redirect_url=http://elu.1024cmi.com/Home/Index/toIndex&scope=snsapi_base',
+    			imgUrl: 'https://ss0.baidu.com/6ONWsjip0QIZ8tyhnq/it/u=1855742931,439235201&fm=58&s=88A67C329CB1859203606DEF02007023&bpow=121&bpoh=75',
+    			trigger: function (res) {
+    			},
+    			success: function (res) {
+    			}
+    		});
+    		wx.onMenuShareTimeline({
+    			title: 'E路同行，闯关有礼 E路同行，闯关有礼',
+    			link: 'http://wx.greatlife.cn/eservice/authorize/thirdAuthorize.action?action=activityAuthorize&redirect_url=http://elu.1024cmi.com/Home/Index/toIndex&scope=snsapi_base',
+    			imgUrl: 'https://ss0.baidu.com/6ONWsjip0QIZ8tyhnq/it/u=1855742931,439235201&fm=58&s=88A67C329CB1859203606DEF02007023&bpow=121&bpoh=75',
+    			trigger: function (res) {
+    			},
+    			success: function (res) {
+    			}
+    		});
+        }
+		
+    });
+	
+</script>
